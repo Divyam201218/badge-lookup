@@ -19,7 +19,7 @@ function initFirebase() {
       credential: admin.credential.cert(
         JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
       ),
-      databaseURL: JSON.parse(process.env.FIREBASE_URL),
+    
 
     });
   }
