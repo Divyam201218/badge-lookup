@@ -2,25 +2,173 @@
 <html>
 <head>
   <title>Badge Lookup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    body { font-family: Arial; max-width: 700px; margin: auto; }
-    .card { border: 1px solid #ccc; padding: 12px; margin: 10px 0; }
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+    }
+
+    body.dark {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #1f2933;
+      --accent: #60a5fa;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 30px 16px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: var(--accent);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .result {
+      margin-top: 20px;
+    }
+
+    .email-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .card h4 {
+      margin: 0 0 6px;
+      font-size: 1.05rem;
+    }
+
+    .meta {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 4px 0;
+    }
+
+    .card a {
+      display: inline-block;
+      margin-top: 8px;
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .loading,
+    .empty {
+      color: var(--muted);
+      margin-top: 16px;
+    }
   </style>
 </head>
+
 <body>
+  <div class="container">
 
-<h2>Find Your Badges</h2>
+    <div class="header">
+      <h2>🎓 Badge Lookup</h2>
+      <button class="secondary" onclick="toggleTheme()">🌙</button>
+    </div>
 
-<input type="email" id="email" placeholder="Enter your email" />
-<button onclick="search()">Search</button>
+    <div class="search-box">
+      <input type="email" id="email" placeholder="Enter your email" />
+      <button onclick="search()">Search</button>
+    </div>
 
-<div id="result"></div>
+    <div id="result" class="result"></div>
+  </div>
 
 <script>
+/* ---------- Theme ---------- */
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme === "dark") document.body.classList.add("dark");
+
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem(
+    "theme",
+    document.body.classList.contains("dark") ? "dark" : "light"
+  );
+}
+
+/* ---------- Search ---------- */
 async function search() {
   const email = document.getElementById("email").value.trim();
   const resDiv = document.getElementById("result");
-  resDiv.innerHTML = "Loading...";
+
+  if (!email) return;
+
+  resDiv.innerHTML = `<div class="loading">Searching badges…</div>`;
 
   const res = await fetch("/.netlify/functions/fetch", {
     method: "POST",
@@ -29,22 +177,24 @@ async function search() {
   });
 
   if (res.status === 404) {
-    resDiv.innerHTML = "❌ No badges found for this email.";
+    resDiv.innerHTML = `<div class="empty">❌ No badges found for this email.</div>`;
     return;
   }
 
   const data = await res.json();
   const badges = data[email];
 
-  let html = `<h3>${email}</h3>`;
+  let html = `<div class="email-title">${email}</div>`;
+
   badges.forEach(b => {
     html += `
       <div class="card">
         <h4>${b.series}</h4>
-        <p><b>Name:</b> ${b.name}</p>
-        <p><b>Issued:</b> ${b.issued}</p>
-        <a href="${b.link}" target="_blank">View Badge</a>
-      </div>`;
+        <div class="meta"><b>Name:</b> ${b.name}</div>
+        <div class="meta"><b>Issued:</b> ${b.issued}</div>
+        <a href="${b.link}" target="_blank">View Badge →</a>
+      </div>
+    `;
   });
 
   resDiv.innerHTML = html;
@@ -53,4 +203,3 @@ async function search() {
 
 </body>
 </html>
-
