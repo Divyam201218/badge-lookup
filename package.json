@@ -1,0 +1,14 @@
+{
+  "name": "badge-lookup-functions",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Netlify serverless functions for badge lookup system",
+  "main": "index.js",
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "csvtojson": "^2.0.10"
+  }
+}
