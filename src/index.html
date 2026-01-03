@@ -1,1 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Badge Lookup</title>
+  <style>
+    body { font-family: Arial; max-width: 700px; margin: auto; }
+    .card { border: 1px solid #ccc; padding: 12px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+
+<h2>Find Your Badges</h2>
+
+<input type="email" id="email" placeholder="Enter your email" />
+<button onclick="search()">Search</button>
+
+<div id="result"></div>
+
+<script>
+async function search() {
+  const email = document.getElementById("email").value.trim();
+  const resDiv = document.getElementById("result");
+  resDiv.innerHTML = "Loading...";
+
+  const res = await fetch("/.netlify/functions/fetch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+
+  if (res.status === 404) {
+    resDiv.innerHTML = "❌ No badges found for this email.";
+    return;
+  }
+
+  const data = await res.json();
+  const badges = data[email];
+
+  let html = `<h3>${email}</h3>`;
+  badges.forEach(b => {
+    html += `
+      <div class="card">
+        <h4>${b.series}</h4>
+        <p><b>Name:</b> ${b.name}</p>
+        <p><b>Issued:</b> ${b.issued}</p>
+        <a href="${b.link}" target="_blank">View Badge</a>
+      </div>`;
+  });
+
+  resDiv.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
 
