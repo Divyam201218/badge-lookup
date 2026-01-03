@@ -129,6 +129,32 @@
       color: var(--muted);
       margin-top: 16px;
     }
+    .top-banner {
+  width: 100%;
+  overflow: hidden;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+
+.scroll-text {
+  white-space: nowrap;
+  display: inline-block;
+  padding-left: 100%;
+  font-size: 0.85rem;
+  color: var(--muted);
+  animation: scroll-left 18s linear infinite;
+}
+
+@keyframes scroll-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
   </style>
 </head>
 
@@ -147,6 +173,11 @@
 
     <div id="result" class="result"></div>
   </div>
+<div class="top-banner">
+  <p class="scroll-text">
+    Disclaimer: This website displays only badges issued from December 2025 onward, including those issued in December 2025.
+  </p>
+</div>
 
 <script>
 /* ---------- Theme ---------- */
