@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin – Badge Lookup</title>
+  <style>
+    body { font-family: Arial; max-width: 1100px; margin: auto; }
+    input, button { margin: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 6px; }
+    th { background: #f4f4f4; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox">
+  <h2>Admin Login</h2>
+  <input id="username" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="loginErr" style="color:red;"></p>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="adminBox" class="hidden">
+  <h2>Badge Admin Panel</h2>
+
+  <h3>Upload CSV</h3>
+  <input type="file" accept=".csv" onchange="uploadCSV(this)">
+  <hr>
+
+  <h3>All Badges</h3>
+  <div id="data"></div>
+</div>
+
+<script>
+let adminPassword = "";
+
+async function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("/.netlify/functions/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+
+  if (res.status !== 200) {
+    document.getElementById("loginErr").innerText = "Invalid credentials";
+    return;
+  }
+
+  adminPassword = password;
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("adminBox").classList.remove("hidden");
+
+  loadData();
+}
+
+async function loadData() {
+  const res = await fetch("/.netlify/functions/fetch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: adminPassword })
+  });
+
+  const data = await res.json();
+  render(data);
+}
+
+function render(data) {
+  let html = `<table>
+    <tr>
+      <th>Email</th>
+      <th>Series</th>
+      <th>Name</th>
+      <th>Issued</th>
+      <th>Link</th>
+      <th>Save</th>
+    </tr>`;
+
+  Object.entries(data).forEach(([email, badges]) => {
+    badges.forEach(b => {
+      html += `
+      <tr>
+        <td>${email}</td>
+        <td><input value="${b.series}" disabled></td>
+        <td><input id="name-${email}-${b.series}" value="${b.name}"></td>
+        <td><input id="issued-${email}-${b.series}" value="${b.issued}"></td>
+        <td><input id="link-${email}-${b.series}" value="${b.link}"></td>
+        <td>
+          <button onclick="save('${email}','${b.series}')">Save</button>
+        </td>
+      </tr>`;
+    });
+  });
+
+  html += "</table>";
+  document.getElementById("data").innerHTML = html;
+}
+
+async function save(email, series) {
+  const name = document.getElementById(`name-${email}-${series}`).value;
+  const issued = document.getElementById(`issued-${email}-${series}`).value;
+  const link = document.getElementById(`link-${email}-${series}`).value;
+
+  await fetch("/.netlify/functions/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, series, name, issued, link })
+  });
+
+  alert("Saved");
+}
+
+async function uploadCSV(input) {
+  const file = input.files[0];
+  const text = await file.text();
+
+  await fetch("/.netlify/functions/save-csv", {
+    method: "POST",
+    headers: { "Content-Type": "text/csv" },
+    body: text
+  });
+
+  alert("CSV processed");
+  loadData();
+}
+</script>
+
+</body>
+</html>
