@@ -1,3 +1,4 @@
+const admin = require("firebase-admin");
 const { initFirebase } = require("./_utils");
 const db = initFirebase();
 
@@ -16,10 +17,16 @@ exports.handler = async (event) => {
 
   const ref = db.collection("Badges").doc(email);
 
-  // Remove only this badge (series)
+  // 🔴 1. Delete only the badge (series)
   await ref.update({
     [series]: admin.firestore.FieldValue.delete()
   });
+
+  // 🟡 2. OPTIONAL CLEANUP (THIS is the code you asked about)
+  const snap = await ref.get();
+  if (!snap.exists || Object.keys(snap.data()).length === 0) {
+    await ref.delete();
+  }
 
   return {
     statusCode: 200,
