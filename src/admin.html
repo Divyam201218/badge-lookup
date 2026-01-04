@@ -166,6 +166,13 @@
   color: var(--muted);
   font-weight: normal;
 }
+.badge-row button.secondary {
+  opacity: 0.7;
+}
+.badge-row button.secondary:hover {
+  opacity: 1;
+  color: #ef4444;
+}
 
 
   </style>
@@ -307,6 +314,8 @@ function render(data) {
           <input id="issued-${email}-${b.series}" value="${b.issued}" />
           <input id="link-${email}-${b.series}" value="${b.link}" />
           <button onclick="save('${email}','${b.series}')">Save</button>
+          <button class="secondary" onclick="delBadge('${email}','${b.series}')">🗑</button>
+
         </div>
       `;
     });
@@ -416,6 +425,24 @@ function applyFilter() {
 
   render(filtered);
 }
+  async function delBadge(email, series) {
+  if (!confirm(`Delete badge "${series}" for ${email}?`)) return;
+
+  const res = await fetch("/.netlify/functions/delete-badge", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, series })
+  });
+
+  if (res.status !== 200) {
+    alert("Delete failed");
+    return;
+  }
+
+  alert("Badge deleted");
+  loadData();
+}
+
 
 
 </script>
