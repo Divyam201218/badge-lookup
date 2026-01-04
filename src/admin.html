@@ -127,6 +127,47 @@
       border: 1px dashed var(--border);
       border-radius: 12px;
     }
+    .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 40;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  width: 360px;
+  z-index: 50;
+}
+
+.modal input {
+  margin-bottom: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+    .badge-group {
+  margin-top: 12px;
+}
+.email-header {
+  cursor: pointer;
+}
+.email-header small {
+  color: var(--muted);
+  font-weight: normal;
+}
+
+
   </style>
 </head>
 
@@ -147,6 +188,11 @@
 
     <div class="topbar">
       <h1>Badge Admin Panel</h1>
+      <div>
+  <button onclick="openModal('addModal')">➕ Add Badge</button>
+  <button class="secondary" onclick="openModal('transferModal')">🔁 Transfer</button>
+</div>
+
       <button class="secondary" onclick="toggleDark()">🌙 Toggle Dark</button>
     </div>
 
@@ -154,33 +200,44 @@
       <h3>Upload CSV</h3>
       <input type="file" accept=".csv" onchange="uploadCSV(this)">
     </div>
+<div class="csv-box">
+  <h3>Filter Badges</h3>
+  <input id="filter" placeholder="Search by email, name, series, date, link" oninput="applyFilter()">
+</div>
 
-    <hr>
+        <div id="data"></div>
+  <!-- MODAL BACKDROP -->
+<div id="modalBackdrop" class="modal-backdrop hidden" onclick="closeModal()"></div>
 
-<h3>➕ Add Badge Manually</h3>
-<div class="card">
+<!-- ADD BADGE MODAL -->
+<div id="addModal" class="modal hidden">
+  <h3>Add Badge</h3>
   <input id="m-email" placeholder="Email">
   <input id="m-series" placeholder="Series">
   <input id="m-name" placeholder="Name">
   <input id="m-issued" placeholder="Issued Date">
   <input id="m-link" placeholder="Badge Link">
-  <button onclick="addManual()">Add Badge</button>
-</div>
-
-<hr>
-
-<h3>🔁 Transfer Badges</h3>
-<div class="card">
-  <input id="t-from" placeholder="Old Email">
-  <input id="t-to" placeholder="New Email">
-  <button onclick="transfer()">Transfer</button>
-</div>
-
-    <div id="data"></div>
+  <div class="modal-actions">
+    <button onclick="addManual()">Save</button>
+    <button class="secondary" onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
+<!-- TRANSFER MODAL -->
+<div id="transferModal" class="modal hidden">
+  <h3>Transfer Badges</h3>
+  <input id="t-from" placeholder="Old Email">
+  <input id="t-to" placeholder="New Email">
+  <div class="modal-actions">
+    <button onclick="transfer()">Transfer</button>
+    <button class="secondary" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+
 <script>
+  let RAW_DATA = {};
+
 let adminPassword = "";
 
 /* ---------- THEME ---------- */
@@ -222,8 +279,9 @@ async function loadData() {
     body: JSON.stringify({ password: adminPassword })
   });
 
-  const data = await res.json();
-  render(data);
+  RAW_DATA = await res.json();
+  render(RAW_DATA);
+
 }
 
 function render(data) {
@@ -234,7 +292,12 @@ function render(data) {
     const card = document.createElement("div");
     card.className = "email-card";
 
-    let html = `<div class="email-header">${email}</div>`;
+    let html = `
+      <div class="email-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+        ${email} <small>(click to expand)</small>
+      </div>
+      <div class="badge-group hidden">
+    `;
 
     badges.forEach(b => {
       html += `
@@ -248,10 +311,13 @@ function render(data) {
       `;
     });
 
+    html += `</div>`; // ✅ close badge-group here
+
     card.innerHTML = html;
     container.appendChild(card);
   });
 }
+
 
 /* ---------- SAVE ---------- */
 async function save(email, series) {
@@ -321,6 +387,36 @@ async function transfer() {
   alert("Transfer complete");
   loadData();
 }
+  function openModal(id) {
+  document.getElementById("modalBackdrop").classList.remove("hidden");
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function closeModal() {
+  document.getElementById("modalBackdrop").classList.add("hidden");
+  document.querySelectorAll(".modal").forEach(m => m.classList.add("hidden"));
+}
+function applyFilter() {
+  const q = document.getElementById("filter").value.toLowerCase();
+  const filtered = {};
+
+  Object.entries(RAW_DATA).forEach(([email, badges]) => {
+    const matches = badges.filter(b =>
+      email.toLowerCase().includes(q) ||
+      b.series.toLowerCase().includes(q) ||
+      b.name.toLowerCase().includes(q) ||
+      b.issued.toLowerCase().includes(q) ||
+      b.link.toLowerCase().includes(q)
+    );
+
+    if (matches.length) {
+      filtered[email] = matches;
+    }
+  });
+
+  render(filtered);
+}
+
 
 </script>
 
