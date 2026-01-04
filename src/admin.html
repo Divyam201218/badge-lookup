@@ -155,6 +155,27 @@
       <input type="file" accept=".csv" onchange="uploadCSV(this)">
     </div>
 
+    <hr>
+
+<h3>➕ Add Badge Manually</h3>
+<div class="card">
+  <input id="m-email" placeholder="Email">
+  <input id="m-series" placeholder="Series">
+  <input id="m-name" placeholder="Name">
+  <input id="m-issued" placeholder="Issued Date">
+  <input id="m-link" placeholder="Badge Link">
+  <button onclick="addManual()">Add Badge</button>
+</div>
+
+<hr>
+
+<h3>🔁 Transfer Badges</h3>
+<div class="card">
+  <input id="t-from" placeholder="Old Email">
+  <input id="t-to" placeholder="New Email">
+  <button onclick="transfer()">Transfer</button>
+</div>
+
     <div id="data"></div>
   </div>
 </div>
@@ -261,6 +282,46 @@ async function uploadCSV(input) {
   alert("CSV processed");
   loadData();
 }
+async function addManual() {
+  const payload = {
+    email: document.getElementById("m-email").value,
+    series: document.getElementById("m-series").value,
+    name: document.getElementById("m-name").value,
+    issued: document.getElementById("m-issued").value,
+    link: document.getElementById("m-link").value
+  };
+
+  await fetch("/.netlify/functions/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  alert("Badge added");
+  loadData();
+}
+
+async function transfer() {
+  if (!confirm("This will MOVE all badges. Continue?")) return;
+
+  const from = document.getElementById("t-from").value;
+  const to = document.getElementById("t-to").value;
+
+  const res = await fetch("/.netlify/functions/transfer-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ from, to })
+  });
+
+  if (res.status !== 200) {
+    alert("Transfer failed");
+    return;
+  }
+
+  alert("Transfer complete");
+  loadData();
+}
+
 </script>
 
 </body>
