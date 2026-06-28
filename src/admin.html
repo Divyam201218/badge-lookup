@@ -102,11 +102,17 @@
       margin-bottom: 12px;
       color: var(--accent);
       word-break: break-all;
+      cursor: pointer;
+    }
+
+    .email-header small {
+      color: var(--muted);
+      font-weight: normal;
     }
 
     .badge-row {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr 2fr auto;
+      grid-template-columns: 1.2fr 1fr 1fr 2fr auto auto;
       gap: 8px;
       margin-bottom: 8px;
       align-items: center;
@@ -120,6 +126,16 @@
       padding: 6px 10px;
     }
 
+    .badge-row button.secondary {
+      opacity: 0.7;
+    }
+    
+    .badge-row button.secondary:hover {
+      opacity: 1;
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+
     .csv-box {
       margin-bottom: 24px;
       padding: 16px;
@@ -127,82 +143,64 @@
       border: 1px dashed var(--border);
       border-radius: 12px;
     }
+
     .modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 40;
-}
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 40;
+    }
 
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px;
-  width: 360px;
-  z-index: 50;
-}
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      width: 360px;
+      z-index: 50;
+    }
 
-.modal input {
-  margin-bottom: 8px;
-}
+    .modal input {
+      margin-bottom: 8px;
+    }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    
     .badge-group {
-  margin-top: 12px;
-}
-.email-header {
-  cursor: pointer;
-}
-.email-header small {
-  color: var(--muted);
-  font-weight: normal;
-}
-.badge-row button.secondary {
-  opacity: 0.7;
-}
-.badge-row button.secondary:hover {
-  opacity: 1;
-  color: #ef4444;
-}
-
-
+      margin-top: 12px;
+    }
   </style>
 </head>
 
 <body>
 <div class="container">
 
-  <!-- LOGIN -->
   <div id="loginBox" class="login-box">
     <h2>Admin Login</h2>
     <input id="username" placeholder="Username" />
     <input id="password" type="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <p id="loginErr" style="color:red;"></p>
+    <button onclick="login()" style="width: 100%; margin-top: 12px;">Login</button>
+    <p id="loginErr" style="color:red; display: none; margin-top: 12px; text-align: center; font-size: 14px;"></p>
   </div>
 
-  <!-- ADMIN -->
   <div id="adminBox" class="hidden">
 
     <div class="topbar">
       <h1>Badge Admin Panel</h1>
       <div>
-  <button onclick="window.location.href='https://badge-lookup.netlify.app/templates.html';">Manage Templates</button>
-          <button onclick="window.location.href='https://badge-lookup.netlify.app/issue.html';">➕ Issue Badges</button>
-  <button onclick="openModal('addModal')">➕ Add Singular Badge (Certifier)</button>
-
-  <button class="secondary" onclick="openModal('transferModal')">🔁 Transfer</button>
-</div>
-
+        <button onclick="window.location.href='https://badge-lookup.netlify.app/templates.html';">Manage Templates</button>
+        <button onclick="window.location.href='https://badge-lookup.netlify.app/issue.html';">➕ Issue Badges</button>
+        <button onclick="openModal('addModal')">➕ Add Singular Badge (Certifier)</button>
+        <button class="secondary" onclick="openModal('transferModal')">🔁 Transfer</button>
+      </div>
       <button class="secondary" onclick="toggleDark()">🌙 Toggle Dark</button>
     </div>
 
@@ -210,45 +208,51 @@
       <h3>Upload CSV</h3>
       <input type="file" accept=".csv" onchange="uploadCSV(this)">
     </div>
-<div class="csv-box">
-  <h3>Filter Badges</h3>
-  <input id="filter" placeholder="Search by email, name, series, date, link" oninput="applyFilter()">
-</div>
+    
+    <div class="csv-box">
+      <h3>Filter Badges</h3>
+      <input id="filter" placeholder="Search by email, name, series, date, link" oninput="applyFilter()">
+    </div>
 
-        <div id="data"></div>
-  <!-- MODAL BACKDROP -->
-<div id="modalBackdrop" class="modal-backdrop hidden" onclick="closeModal()"></div>
-
-<!-- ADD BADGE MODAL -->
-<div id="addModal" class="modal hidden">
-  <h3>Add Badge</h3>
-  <input id="m-email" placeholder="Email">
-  <input id="m-series" placeholder="Series">
-  <input id="m-name" placeholder="Name">
-  <input id="m-issued" placeholder="Issued Date">
-  <input id="m-link" placeholder="Badge Link">
-  <div class="modal-actions">
-    <button onclick="addManual()">Save</button>
-    <button class="secondary" onclick="closeModal()">Cancel</button>
+    <div id="data"></div>
   </div>
-</div>
+  
+  <div id="modalBackdrop" class="modal-backdrop hidden" onclick="closeModal()"></div>
 
-<!-- TRANSFER MODAL -->
-<div id="transferModal" class="modal hidden">
-  <h3>Transfer Badges</h3>
-  <input id="t-from" placeholder="Old Email">
-  <input id="t-to" placeholder="New Email">
-  <div class="modal-actions">
-    <button onclick="transfer()">Transfer</button>
-    <button class="secondary" onclick="closeModal()">Cancel</button>
+  <div id="addModal" class="modal hidden">
+    <h3>Add Badge</h3>
+    <input id="m-email" placeholder="Email">
+    <input id="m-series" placeholder="Series">
+    <input id="m-name" placeholder="Name">
+    <input id="m-issued" placeholder="Issued Date">
+    <input id="m-link" placeholder="Badge Link">
+    <div class="modal-actions">
+      <button onclick="addManual()">Save</button>
+      <button class="secondary" onclick="closeModal()">Cancel</button>
+    </div>
   </div>
-</div>
 
+  <div id="transferModal" class="modal hidden">
+    <h3>Transfer Badges</h3>
+    <input id="t-from" placeholder="Old Email">
+    <input id="t-to" placeholder="New Email">
+    <div class="modal-actions">
+      <button onclick="transfer()">Transfer</button>
+      <button class="secondary" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
 
 <script>
-  let RAW_DATA = {};
+let RAW_DATA = {};
+let authToken = sessionStorage.getItem("authToken");
 
-let adminPassword = "";
+document.addEventListener("DOMContentLoaded", () => {
+  if (authToken) {
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("adminBox").classList.remove("hidden");
+    loadData();
+  }
+});
 
 /* ---------- THEME ---------- */
 function toggleDark() {
@@ -261,37 +265,83 @@ if (localStorage.getItem("dark") === "true") {
 
 /* ---------- AUTH ---------- */
 async function login() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const btn = document.querySelector("#loginBox button");
+  const err = document.getElementById("loginErr");
 
-  const res = await fetch("/.netlify/functions/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password })
-  });
+  if (!username || !password) return;
 
-  if (res.status !== 200) {
-    document.getElementById("loginErr").innerText = "Invalid credentials";
-    return;
+  btn.innerText = "Authenticating...";
+  btn.disabled = true;
+  err.style.display = "none";
+
+  try {
+    const res = await fetch("/.netlify/functions/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (!res.ok) {
+      err.innerText = "Invalid credentials";
+      err.style.display = "block";
+      return;
+    }
+
+    const data = await res.json();
+    
+    // Store the secure token provided by the backend (fallback to password temporarily if backend isn't updated yet)
+    authToken = data.token || password;
+    sessionStorage.setItem("authToken", authToken);
+
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("adminBox").classList.remove("hidden");
+    loadData();
+  } catch (e) {
+    console.error(e);
+    err.innerText = "Connection error.";
+    err.style.display = "block";
+  } finally {
+    btn.innerText = "Login";
+    btn.disabled = false;
   }
+}
 
-  adminPassword = password;
-  document.getElementById("loginBox").classList.add("hidden");
-  document.getElementById("adminBox").classList.remove("hidden");
-  loadData();
+/* ---------- API HELPER ---------- */
+function getHeaders(isCsv = false) {
+  return {
+    "Content-Type": isCsv ? "text/csv" : "application/json",
+    "Authorization": `Bearer ${authToken}` // Token attached to every request
+  };
+}
+
+function handleApiError(res) {
+  if (res.status === 401 || res.status === 403) {
+    alert("Session expired or unauthorized. Please log in again.");
+    sessionStorage.removeItem("authToken");
+    window.location.reload();
+    return true;
+  }
+  return false;
 }
 
 /* ---------- DATA ---------- */
 async function loadData() {
-  const res = await fetch("/.netlify/functions/fetch", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password: adminPassword })
-  });
+  try {
+    const res = await fetch("/.netlify/functions/fetch", {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({}) // No longer sending raw password in the body
+    });
 
-  RAW_DATA = await res.json();
-  render(RAW_DATA);
+    if (handleApiError(res)) return;
 
+    RAW_DATA = await res.json();
+    render(RAW_DATA);
+  } catch (err) {
+    console.error("Failed to load data:", err);
+  }
 }
 
 function render(data) {
@@ -318,18 +368,15 @@ function render(data) {
           <input id="link-${email}-${b.series}" value="${b.link}" />
           <button onclick="save('${email}','${b.series}')">Save</button>
           <button class="secondary" onclick="delBadge('${email}','${b.series}')">🗑</button>
-
         </div>
       `;
     });
 
-    html += `</div>`; // ✅ close badge-group here
-
+    html += `</div>`;
     card.innerHTML = html;
     container.appendChild(card);
   });
 }
-
 
 /* ---------- SAVE ---------- */
 async function save(email, series) {
@@ -337,29 +384,33 @@ async function save(email, series) {
   const issued = document.getElementById(`issued-${email}-${series}`).value;
   const link = document.getElementById(`link-${email}-${series}`).value;
 
-  await fetch("/.netlify/functions/save", {
+  const res = await fetch("/.netlify/functions/save", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getHeaders(),
     body: JSON.stringify({ email, series, name, issued, link })
   });
 
+  if (handleApiError(res)) return;
   alert("Saved");
 }
 
 /* ---------- CSV ---------- */
 async function uploadCSV(input) {
   const file = input.files[0];
+  if (!file) return;
   const text = await file.text();
 
-  await fetch("/.netlify/functions/save-csv", {
+  const res = await fetch("/.netlify/functions/save-csv", {
     method: "POST",
-    headers: { "Content-Type": "text/csv" },
+    headers: getHeaders(true),
     body: text
   });
 
+  if (handleApiError(res)) return;
   alert("CSV processed");
   loadData();
 }
+
 async function addManual() {
   const payload = {
     email: document.getElementById("m-email").value,
@@ -369,13 +420,15 @@ async function addManual() {
     link: document.getElementById("m-link").value
   };
 
-  await fetch("/.netlify/functions/save", {
+  const res = await fetch("/.netlify/functions/save", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getHeaders(),
     body: JSON.stringify(payload)
   });
 
+  if (handleApiError(res)) return;
   alert("Badge added");
+  closeModal();
   loadData();
 }
 
@@ -387,19 +440,42 @@ async function transfer() {
 
   const res = await fetch("/.netlify/functions/transfer-email", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getHeaders(),
     body: JSON.stringify({ from, to })
   });
 
+  if (handleApiError(res)) return;
   if (res.status !== 200) {
     alert("Transfer failed");
     return;
   }
 
   alert("Transfer complete");
+  closeModal();
   loadData();
 }
-  function openModal(id) {
+
+async function delBadge(email, series) {
+  if (!confirm(`Delete badge "${series}" for ${email}?`)) return;
+
+  const res = await fetch("/.netlify/functions/delete-badge", {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify({ email, series })
+  });
+
+  if (handleApiError(res)) return;
+  if (res.status !== 200) {
+    alert("Delete failed");
+    return;
+  }
+
+  alert("Badge deleted");
+  loadData();
+}
+
+/* ---------- UI HELPERS ---------- */
+function openModal(id) {
   document.getElementById("modalBackdrop").classList.remove("hidden");
   document.getElementById(id).classList.remove("hidden");
 }
@@ -408,6 +484,7 @@ function closeModal() {
   document.getElementById("modalBackdrop").classList.add("hidden");
   document.querySelectorAll(".modal").forEach(m => m.classList.add("hidden"));
 }
+
 function applyFilter() {
   const q = document.getElementById("filter").value.toLowerCase();
   const filtered = {};
@@ -428,27 +505,6 @@ function applyFilter() {
 
   render(filtered);
 }
-  async function delBadge(email, series) {
-  if (!confirm(`Delete badge "${series}" for ${email}?`)) return;
-
-  const res = await fetch("/.netlify/functions/delete-badge", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, series })
-  });
-
-  if (res.status !== 200) {
-    alert("Delete failed");
-    return;
-  }
-
-  alert("Badge deleted");
-  loadData();
-}
-
-
-
 </script>
-
 </body>
 </html>
