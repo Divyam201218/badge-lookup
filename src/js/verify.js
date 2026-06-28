@@ -43,11 +43,15 @@ function downloadPNG() {
 }
 
 function downloadPDF() {
-  // Safety check: Prevent downloading before data loads
   if (!credentialData) return alert("Please wait for the badge to finish loading.");
 
+  // Inject Data into PDF layout
   document.getElementById('pdfBadgeName').innerText = credentialData.badgeName;
   document.getElementById('pdfRecipient').innerText = credentialData.recipientName;
+  
+  // Using email and date from backend payload
+  document.getElementById('pdfEmail').innerText = credentialData.email || "N/A";
+  document.getElementById('pdfDate').innerText = `${credentialData.issueMonth}/${credentialData.issueYear}`; 
   document.getElementById('pdfCredID').innerText = credentialData.credentialID;
   
   const urlEl = document.getElementById('pdfUrl');
@@ -56,17 +60,20 @@ function downloadPDF() {
   
   const element = document.getElementById('pdf-wrapper');
   
+  // Temporarily unhide for capture
   document.getElementById('pdf-only-meta').classList.remove('hidden'); 
   
+  // PDF Options for Portrait and High Resolution
   const opt = {
-    margin:       0.5,
+    margin:       [0.5, 0, 0.5, 0], // Top, Left, Bottom, Right margins
     filename:     `${credentialData.credentialID}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    image:        { type: 'jpeg', quality: 1.0 },
+    html2canvas:  { scale: 3, useCORS: true }, // Higher scale for crisp canvas rendering
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' } // Ensures Portrait Mode
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
+    // Hide again after download starts
     document.getElementById('pdf-only-meta').classList.add('hidden'); 
   });
 }
