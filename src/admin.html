@@ -243,6 +243,7 @@
   </div>
 
 <script>
+  let adminPassword = "";
 let RAW_DATA = {};
 let authToken = sessionStorage.getItem("authToken");
 
@@ -297,6 +298,7 @@ async function login() {
 
     document.getElementById("loginBox").classList.add("hidden");
     document.getElementById("adminBox").classList.remove("hidden");
+    adminPassword = password;
     loadData();
   } catch (e) {
     console.error(e);
@@ -331,8 +333,8 @@ async function loadData() {
   try {
     const res = await fetch("/.netlify/functions/fetch", {
       method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify({}) // No longer sending raw password in the body
+      headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: adminPassword })// No longer sending raw password in the body
     });
 
     if (handleApiError(res)) return;
