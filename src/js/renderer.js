@@ -6,7 +6,6 @@ class BadgeRenderer {
     this.canvas.height = 500;
   }
 
-  // Added qrConfig and verifyUrl parameters
   async render(imageUrl, placeholders, values = {}, qrConfig = null, verifyUrl = "https://example.com/verify") {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
@@ -26,17 +25,15 @@ class BadgeRenderer {
       this.ctx.fillText(text, ph.x, ph.y);
     });
 
-    // 3. Draw QR Code (if size > 0)
+    // 3. Draw QR Code - using toDataURL for guaranteed rendering
     if (qrConfig && qrConfig.size > 0 && window.QRCode) {
       try {
-        const qrCanvas = document.createElement('canvas');
-        // Generate QR on an off-screen canvas with zero margin
-        await QRCode.toCanvas(qrCanvas, verifyUrl, { 
+        const qrDataUrl = await QRCode.toDataURL(verifyUrl, { 
           width: parseInt(qrConfig.size), 
           margin: 0 
         });
-        // Draw the generated QR code onto the main badge canvas
-        this.ctx.drawImage(qrCanvas, parseInt(qrConfig.x), parseInt(qrConfig.y));
+        const qrImg = await this.loadImage(qrDataUrl);
+        this.ctx.drawImage(qrImg, parseInt(qrConfig.x), parseInt(qrConfig.y));
       } catch (err) {
         console.error("QR Code rendering failed:", err);
       }
