@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Issue Badges</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <style>
+    .issue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 20px; }
+  </style>
+</head>
+<body>
+  <div class="issue-grid">
+    <div>
+      <h2>Issue New Badge</h2>
+      <select id="templateSelect" onchange="loadSelectedTemplate()"></select>
+      
+      <div id="dynamicForm" style="margin-top: 20px;">
+        <input id="recipientName" placeholder="Recipient Name" oninput="updatePreview()">
+        <input id="recipientEmail" placeholder="Recipient Email (e.g., user@example.com)">
+        <input id="badgeName" placeholder="Badge Name (e.g., React Master)">
+        <input id="skill" placeholder="Skill Achieved">
+        <input id="issueMonth" placeholder="Issue Month (MM)">
+        <input id="issueYear" placeholder="Issue Year (YYYY)">
+        <div id="extraPlaceholders"></div>
+      </div>
+
+      <button onclick="issueBadge()" style="margin-top: 20px; width:100%;">Issue Badge</button>
+    </div>
+
+    <div>
+      <h3>Live Preview</h3>
+      <canvas id="issueCanvas"></canvas>
+    </div>
+  </div>
+
+  <script src="js/renderer.js"></script>
+  <script src="js/issue.js"></script>
+</body>
+</html>
