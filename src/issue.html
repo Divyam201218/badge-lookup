@@ -12,45 +12,56 @@
   </style>
 </head>
 <body>
-  <div class="issue-grid">
-    <div>
-      <h2>1. Batch Settings</h2>
-      <select id="templateSelect" onchange="loadSelectedTemplate()"></select>
-      
-      <div id="batchSettings" class="hidden" style="margin-top: 12px;">
-        <input id="badgeName" placeholder="Badge Name (e.g., React Master)">
-        <input id="skill" placeholder="Skill Achieved">
-        <input id="issueMonth" placeholder="Issue Month (MM)">
-        <input id="issueYear" placeholder="Issue Year (YYYY)">
-        <hr style="margin: 20px 0;">
+
+  <div id="loginContainer" class="login-box">
+    <h2>Admin Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="handleLogin()" style="width: 100%; margin-top: 12px;">Login</button>
+    <p id="loginError" style="color: #ef4444; display: none; font-size: 14px; text-align: center; margin-top: 12px;">Invalid username or password.</p>
+  </div>
+
+  <div id="appContainer" class="hidden">
+    <div class="issue-grid">
+      <div>
+        <h2>1. Batch Settings</h2>
+        <select id="templateSelect" onchange="loadSelectedTemplate()"></select>
         
-        <h2>2. Add Participants</h2>
-        <div class="csv-box">
-          <input id="p-email" placeholder="Participant Email (e.g., user@example.com)">
-          <input id="p-name" placeholder="Participant Name" oninput="updatePreview()">
+        <div id="batchSettings" class="hidden" style="margin-top: 12px;">
+          <input id="badgeName" placeholder="Badge Name (e.g., React Master)">
+          <input id="skill" placeholder="Skill Achieved">
+          <input id="issueMonth" placeholder="Issue Month (MM)">
+          <input id="issueYear" placeholder="Issue Year (YYYY)">
+          <hr style="margin: 20px 0;">
           
-          <div id="dynamicPlaceholders" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);"></div>
-          
-          <button onclick="addParticipant()" style="margin-top: 12px; width: 100%;">Add to Queue</button>
+          <h2>2. Add Participants</h2>
+          <div class="csv-box">
+            <input id="p-email" placeholder="Participant Email (e.g., user@example.com)">
+            <input id="p-name" placeholder="Participant Name" oninput="updatePreview()">
+            
+            <div id="dynamicPlaceholders" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);"></div>
+            
+            <button onclick="addParticipant()" style="margin-top: 12px; width: 100%;">Add to Queue</button>
+          </div>
+
+          <div class="csv-box">
+            <h3>Or Bulk Upload CSV</h3>
+            <p id="csvFormatGuide"><small>Format: email, name</small></p>
+            <input type="file" accept=".csv" onchange="handleCSV(this)">
+          </div>
+
+          <h2>3. Queue (<span id="q-count">0</span>)</h2>
+          <div id="queueList" class="queue-list"></div>
+
+          <button onclick="issueBulkBadges()" style="margin-top: 20px; width:100%; background: #10b981;">🚀 Issue All Badges in Queue</button>
         </div>
-
-        <div class="csv-box">
-          <h3>Or Bulk Upload CSV</h3>
-          <p id="csvFormatGuide"><small>Format: email, name</small></p>
-          <input type="file" accept=".csv" onchange="handleCSV(this)">
-        </div>
-
-        <h2>3. Queue (<span id="q-count">0</span>)</h2>
-        <div id="queueList" class="queue-list"></div>
-
-        <button onclick="issueBulkBadges()" style="margin-top: 20px; width:100%; background: #10b981;">🚀 Issue All Badges in Queue</button>
       </div>
-    </div>
 
-    <div>
-      <h3>Live Preview</h3>
-      <canvas id="issueCanvas"></canvas>
-      <p style="text-align: center; color: var(--muted);"><small>Previewing the data currently typed in the input fields.</small></p>
+      <div>
+        <h3>Live Preview</h3>
+        <canvas id="issueCanvas"></canvas>
+        <p style="text-align: center; color: var(--muted);"><small>Previewing the data currently typed in the input fields.</small></p>
+      </div>
     </div>
   </div>
 
