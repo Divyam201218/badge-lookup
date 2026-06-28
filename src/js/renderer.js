@@ -2,19 +2,19 @@ class BadgeRenderer {
   constructor(canvasElement) {
     this.canvas = canvasElement;
     this.ctx = this.canvas.getContext('2d');
-    // Ensure fixed 500x500 dimension as per spec
     this.canvas.width = 500;
     this.canvas.height = 500;
   }
 
-  async render(imageUrl, placeholders, values = {}) {
+  // Added qrConfig and verifyUrl parameters
+  async render(imageUrl, placeholders, values = {}, qrConfig = null, verifyUrl = "https://example.com/verify") {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
-    // Load background image
+    // 1. Draw Background
     const img = await this.loadImage(imageUrl);
     this.ctx.drawImage(img, 0, 0, 500, 500);
 
-    // Render each placeholder text
+    // 2. Draw Placeholders
     placeholders.forEach(ph => {
       const text = values[ph.key] || ph.label || `[${ph.key}]`;
       
@@ -25,12 +25,28 @@ class BadgeRenderer {
 
       this.ctx.fillText(text, ph.x, ph.y);
     });
+
+    // 3. Draw QR Code (if size > 0)
+    if (qrConfig && qrConfig.size > 0 && window.QRCode) {
+      try {
+        const qrCanvas = document.createElement('canvas');
+        // Generate QR on an off-screen canvas with zero margin
+        await QRCode.toCanvas(qrCanvas, verifyUrl, { 
+          width: parseInt(qrConfig.size), 
+          margin: 0 
+        });
+        // Draw the generated QR code onto the main badge canvas
+        this.ctx.drawImage(qrCanvas, parseInt(qrConfig.x), parseInt(qrConfig.y));
+      } catch (err) {
+        console.error("QR Code rendering failed:", err);
+      }
+    }
   }
 
   loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = "Anonymous"; // Crucial for CORS/Uploadcare
+      img.crossOrigin = "Anonymous";
       img.onload = () => resolve(img);
       img.onerror = reject;
       img.src = src;
@@ -45,5 +61,4 @@ class BadgeRenderer {
   }
 }
 
-// Export for module usage or attach to window
 window.BadgeRenderer = BadgeRenderer;
