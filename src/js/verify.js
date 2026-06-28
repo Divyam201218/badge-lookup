@@ -1,15 +1,3 @@
-let credentialData = null;
-let renderer;
-
-document.addEventListener('DOMContentLoaded', async () => {
-  renderer = new BadgeRenderer(document.getElementById('verifyCanvas'));
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const credID = urlParams.get('id'); // e.g. /verify.html?id=BG-2026-...
-  
-  if(credID) loadCredential(credID);
-});
-
 async function loadCredential(credID) {
   const res = await fetch(`/.netlify/functions/verify-badge?id=${credID}`);
   if (!res.ok) return alert("Invalid Credential ID");
@@ -19,43 +7,41 @@ async function loadCredential(credID) {
   document.getElementById('vName').innerText = credentialData.recipientName;
   document.getElementById('vDetails').innerText = `${credentialData.badgeName} • Issued: ${credentialData.issueDate} • ID: ${credentialData.credentialID}`;
   
-  // Render using stored snapshot to prevent historical changes affecting old badges
+  // Pass the stored QR config and the actual current URL to the renderer
   renderer.render(
     credentialData.templateSnapshot.image, 
     credentialData.templateSnapshot.placeholders, 
-    credentialData.placeholderValues
+    credentialData.placeholderValues,
+    credentialData.templateSnapshot.qrConfig, // New!
+    window.location.href // New!
   );
 }
 
-function downloadPNG() {
-  renderer.downloadPNG(`${credentialData.credentialID}.png`);
-}
-
 function downloadPDF() {
-  // Populate PDF specific metadata
   document.getElementById('pdfBadgeName').innerText = credentialData.badgeName;
   document.getElementById('pdfRecipient').innerText = credentialData.recipientName;
   document.getElementById('pdfCredID').innerText = credentialData.credentialID;
-  document.getElementById('pdfUrl').innerText = window.location.href;
+  
+  // Set href and text for the URL
+  const urlEl = document.getElementById('pdfUrl');
+  urlEl.innerText = window.location.href;
+  urlEl.href = window.location.href;
   
   const element = document.getElementById('pdf-wrapper');
-  document.getElementById('pdf-only-meta').classList.remove('hidden'); // Show meta for PDF
   
-  html2pdf().from(element).save(`${credentialData.credentialID}.pdf`).then(() => {
-    document.getElementById('pdf-only-meta').classList.add('hidden'); // Hide meta again for UI
-  });
-}
+  // Temporarily reveal meta for PDF capture
+  document.getElementById('pdf-only-meta').classList.remove('hidden'); 
+  
+  // Added options to ensure the PDF looks clean and scales well
+  const opt = {
+    margin:       0.5,
+    filename:     `${credentialData.credentialID}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
 
-function addToLinkedIn() {
-  const baseUrl = "https://www.linkedin.com/profile/add";
-  const params = new URLSearchParams({
-    startTask: "CERTIFICATION_NAME",
-    name: credentialData.badgeName,
-    organizationId: credentialData.issuingOrganizationID,
-    issueYear: credentialData.issueYear,
-    issueMonth: credentialData.issueMonth,
-    certUrl: window.location.href,
-    certId: credentialData.credentialID
+  html2pdf().set(opt).from(element).save().then(() => {
+    document.getElementById('pdf-only-meta').classList.add('hidden'); // Hide meta again
   });
-  window.open(`${baseUrl}?${params.toString()}`, '_blank');
 }
