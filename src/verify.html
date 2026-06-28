@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verify Credential</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div class="container" style="max-width: 800px; text-align: center; padding-top: 50px;">
+    <h1>Credential Verification</h1>
+    <h3 id="vName" style="color: var(--accent);"></h3>
+    <p id="vDetails"></p>
+    
+    <div id="pdf-wrapper" style="margin: 20px auto; padding: 20px; background: white; border-radius: 12px; display: inline-block;">
+      <canvas id="verifyCanvas"></canvas>
+      <div id="pdf-only-meta" class="hidden">
+        <h2 id="pdfBadgeName"></h2>
+        <p>Issued to: <strong id="pdfRecipient"></strong></p>
+        <p>Credential ID: <span id="pdfCredID"></span></p>
+        <p>Verification URL: <span id="pdfUrl"></span></p>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+      <button onclick="downloadPNG()">Download PNG</button>
+      <button onclick="downloadPDF()">Download PDF</button>
+      <button onclick="addToLinkedIn()" style="background: #0077b5;">Add to LinkedIn</button>
+    </div>
+  </div>
+
+  <script src="js/renderer.js"></script>
+  <script src="js/verify.js"></script>
+</body>
+</html>
