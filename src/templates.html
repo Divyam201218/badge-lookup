@@ -3,40 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <title>Template Editor</title>
-  <link rel="stylesheet" href="css/admin.css"> <style>
-    .editor-container { display: flex; gap: 24px; max-width: 1200px; margin: auto; padding: 20px; }
-    .sidebar { flex: 1; background: var(--card); padding: 20px; border-radius: 12px; }
-    .canvas-container { flex: 1; text-align: center; }
-    canvas { border: 1px solid var(--border); border-radius: 8px; cursor: crosshair; }
-    .placeholder-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
-  </style>
+  <link rel="stylesheet" href="css/admin.css"> 
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="editor-container">
-    <div class="sidebar">
-      <h2>Template Editor</h2>
-      <input id="tplName" placeholder="Template Name (e.g., Hackathon 2026)">
-      <input id="tplImage" placeholder="Uploadcare Image URL (500x500)" onchange="previewTemplate()">
-      
-      <hr style="margin: 20px 0;">
-      <h3>Placeholders</h3>
-      <div id="placeholdersList"></div>
-      <button onclick="addPlaceholder()">+ Add Placeholder</button>
-      <hr style="margin: 20px 0;">
-<h3>QR Code Settings</h3>
-<div class="placeholder-row">
-  <input type="number" id="qrSize" placeholder="Size (0 to disable)" value="0" onchange="updateQR()">
-  <button class="secondary" onclick="setActiveElement('qr')">Move QR Position</button>
-</div>
-      <hr style="margin: 20px 0;">
-      <button onclick="saveTemplate()" style="width: 100%;">Save Template</button>
-    </div>
+  
+  <div id="loginContainer" class="login-box">
+    <h2>Admin Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="handleLogin()" style="width: 100%; margin-top: 12px;">Login</button>
+    <p id="loginError" style="color: #ef4444; display: none; font-size: 14px; text-align: center; margin-top: 12px;">Invalid username or password.</p>
+  </div>
 
-    <div class="canvas-container">
-      <h3>Live Preview</h3>
-      <canvas id="badgeCanvas"></canvas>
-      <p><small>Click and drag on the canvas to move the selected placeholder.</small></p>
+  <div id="appContainer" class="hidden">
+    <div class="editor-container">
+      <div class="sidebar">
+        <h2>Template Editor</h2>
+        <input id="tplName" placeholder="Template Name (e.g., Hackathon 2026)">
+        <input id="tplImage" placeholder="Uploadcare Image URL (500x500)" onchange="previewTemplate()">
+        
+        <hr style="margin: 20px 0;">
+        <h3>Placeholders</h3>
+        <div id="placeholdersList"></div>
+        <button onclick="addPlaceholder()">+ Add Placeholder</button>
+        <hr style="margin: 20px 0;">
+        
+        <h3>QR Code Settings</h3>
+        <div class="placeholder-row">
+          <input type="number" id="qrSize" placeholder="Size (0 to disable)" value="0" onchange="updateQR()">
+          <button class="secondary" onclick="setActiveElement('qr')">Move QR Position</button>
+        </div>
+        
+        <hr style="margin: 20px 0;">
+        <button onclick="saveTemplate()" style="width: 100%;">Save Template</button>
+      </div>
+
+      <div class="canvas-container">
+        <h3>Live Preview</h3>
+        <canvas id="badgeCanvas"></canvas>
+        <p><small>Click and drag on the canvas to move the selected placeholder.</small></p>
+      </div>
     </div>
   </div>
 
