@@ -10,6 +10,7 @@
     canvas { border: 1px solid var(--border); border-radius: 8px; cursor: crosshair; }
     .placeholder-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
   <div class="editor-container">
@@ -22,7 +23,12 @@
       <h3>Placeholders</h3>
       <div id="placeholdersList"></div>
       <button onclick="addPlaceholder()">+ Add Placeholder</button>
-      
+      <hr style="margin: 20px 0;">
+<h3>QR Code Settings</h3>
+<div class="placeholder-row">
+  <input type="number" id="qrSize" placeholder="Size (0 to disable)" value="0" onchange="updateQR()">
+  <button class="secondary" onclick="setActiveElement('qr')">Move QR Position</button>
+</div>
       <hr style="margin: 20px 0;">
       <button onclick="saveTemplate()" style="width: 100%;">Save Template</button>
     </div>
