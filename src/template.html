@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Badge Templates</title>
+
+<style>
+
+:root{
+
+    --bg:#f6f7fb;
+    --card:#ffffff;
+    --border:#e5e7eb;
+    --text:#111827;
+    --muted:#6b7280;
+    --accent:#6366f1;
+
+}
+
+body.dark{
+
+    --bg:#0f172a;
+    --card:#020617;
+    --border:#1e293b;
+    --text:#f1f5f9;
+    --muted:#94a3b8;
+    --accent:#818cf8;
+
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+}
+
+button{
+
+    cursor:pointer;
+    border:none;
+    border-radius:10px;
+    padding:10px 16px;
+    font-weight:600;
+
+}
+
+input,
+select{
+
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+
+}
+
+.topbar{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:18px 30px;
+
+    background:var(--card);
+    border-bottom:1px solid var(--border);
+
+}
+
+.topbar h1{
+
+    margin:0;
+
+}
+
+.actions{
+
+    display:flex;
+    gap:10px;
+
+}
+
+.primary{
+
+    background:var(--accent);
+    color:white;
+
+}
+
+.secondary{
+
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text);
+
+}
+
+.main{
+
+    display:grid;
+
+    grid-template-columns:
+
+        340px
+        1fr
+        320px;
+
+    gap:20px;
+
+    padding:20px;
+
+    height:calc(100vh - 75px);
+
+}
+
+/* LEFT */
+
+.sidebar{
+
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px;
+
+    overflow:auto;
+
+}
+
+.sidebar h2{
+
+    margin-top:0;
+
+}
+
+.group{
+
+    margin-bottom:22px;
+
+}
+
+.group label{
+
+    display:block;
+    margin-bottom:6px;
+    font-weight:600;
+
+}
+
+.placeholder-list{
+
+    margin-top:12px;
+
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+
+}
+
+.placeholder{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:10px;
+
+    border-radius:8px;
+
+    border:1px solid var(--border);
+
+}
+
+.placeholder span{
+
+    font-weight:600;
+
+}
+
+.placeholder button{
+
+    padding:6px 10px;
+
+}
+
+/* CENTER */
+
+.editor{
+
+    background:var(--card);
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    position:relative;
+
+}
+
+.canvas-wrapper{
+
+    width:500px;
+    height:500px;
+
+    border:2px dashed var(--border);
+
+    position:relative;
+
+    background:#eee;
+
+}
+
+canvas{
+
+    width:500px;
+    height:500px;
+
+}
+
+/* RIGHT */
+
+.properties{
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-radius:14px;
+
+    padding:18px;
+
+    overflow:auto;
+
+}
+
+.properties h2{
+
+    margin-top:0;
+
+}
+
+.property{
+
+    margin-bottom:16px;
+
+}
+
+.row{
+
+    display:flex;
+    gap:10px;
+
+}
+
+.row .property{
+
+    flex:1;
+
+}
+
+input[type=color]{
+
+    padding:0;
+    height:42px;
+
+}
+
+.help{
+
+    margin-top:20px;
+
+    color:var(--muted);
+
+    line-height:1.6;
+
+    font-size:14px;
+
+}
+
+.footer{
+
+    margin-top:20px;
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+.placeholder.selected{
+
+    border:2px solid var(--accent);
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+<h1>Badge Template Editor</h1>
+
+<div class="actions">
+
+<button class="secondary" id="backBtn">
+← Back
+</button>
+
+<button class="secondary" id="themeBtn">
+🌙 Theme
+</button>
+
+<button class="primary" id="saveBtn">
+💾 Save Template
+</button>
+
+</div>
+
+</div>
+
+<div class="main">
+
+<!-- LEFT -->
+
+<div class="sidebar">
+
+<h2>Template</h2>
+
+<div class="group">
+
+<label>Template Name</label>
+
+<input
+id="templateName"
+placeholder="Hackathon Winner">
+
+</div>
+
+<div class="group">
+
+<label>Uploadcare Image URL</label>
+
+<input
+id="imageURL"
+placeholder="https://ucarecdn.com/...">
+
+</div>
+
+<div class="group">
+
+<button
+class="primary"
+style="width:100%;"
+id="loadImageBtn">
+
+Load Image
+
+</button>
+
+</div>
+
+<hr>
+
+<div style="display:flex;justify-content:space-between;align-items:center;">
+
+<h2>Placeholders</h2>
+
+<button id="addPlaceholderBtn">
+
+＋ Add
+
+</button>
+
+</div>
+
+<div
+class="placeholder-list"
+id="placeholderList">
+
+</div>
+
+</div>
+
+<!-- CENTER -->
+
+<div class="editor">
+
+<div class="canvas-wrapper">
+
+<canvas
+id="badgeCanvas"
+width="500"
+height="500">
+
+</canvas>
+
+</div>
+
+</div>
+
+<!-- RIGHT -->
+
+<div class="properties">
+
+<h2>Placeholder Properties</h2>
+
+<div class="property">
+
+<label>Name</label>
+
+<input id="fieldName">
+
+</div>
+
+<div class="row">
+
+<div class="property">
+
+<label>X</label>
+
+<input
+id="fieldX"
+type="number">
+
+</div>
+
+<div class="property">
+
+<label>Y</label>
+
+<input
+id="fieldY"
+type="number">
+
+</div>
+
+</div>
+
+<div class="row">
+
+<div class="property">
+
+<label>Font Size</label>
+
+<input
+id="fieldSize"
+type="number">
+
+</div>
+
+<div class="property">
+
+<label>Color</label>
+
+<input
+id="fieldColor"
+type="color">
+
+</div>
+
+</div>
+
+<div class="property">
+
+<label>Font</label>
+
+<select id="fieldFont">
+
+<option>Inter</option>
+<option>Poppins</option>
+<option>Roboto</option>
+<option>Montserrat</option>
+<option>Nunito</option>
+<option>Lato</option>
+<option>Oswald</option>
+
+</select>
+
+</div>
+
+<div class="property">
+
+<label>Alignment</label>
+
+<select id="fieldAlign">
+
+<option value="left">Left</option>
+<option value="center">Center</option>
+<option value="right">Right</option>
+
+</select>
+
+</div>
+
+<div class="property">
+
+<label>Weight</label>
+
+<select id="fieldWeight">
+
+<option>400</option>
+<option>500</option>
+<option>600</option>
+<option>700</option>
+<option>800</option>
+
+</select>
+
+</div>
+
+<div class="footer">
+
+<button
+class="secondary"
+style="flex:1;"
+id="deletePlaceholderBtn">
+
+Delete
+
+</button>
+
+<button
+class="primary"
+style="flex:1;"
+id="duplicatePlaceholderBtn">
+
+Duplicate
+
+</button>
+
+</div>
+
+<div class="help">
+
+<b>Controls</b>
+
+<ul>
+
+<li>Drag placeholders on the canvas.</li>
+
+<li>Arrow keys move the selected placeholder.</li>
+
+<li>Shift + Arrow = faster movement.</li>
+
+<li>Click a placeholder to edit it.</li>
+
+<li>The image must be exactly <b>500×500</b>.</li>
+
+</ul>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="js/template-editor.js"></script>
+
+</body>
+</html>
