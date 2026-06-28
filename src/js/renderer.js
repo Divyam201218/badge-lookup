@@ -22,8 +22,17 @@ class BadgeRenderer {
       this.ctx.textAlign = ph.alignment || 'center';
       this.ctx.textBaseline = 'middle';
 
-      this.ctx.fillText(text, ph.x, ph.y);
-    });
+// 1. Split the incoming text by the newline character
+const lines = String(text).split('\n');
+
+// 2. Define a line height (usually 1.2x to 1.5x the font size)
+const lineHeight = placeholder.size * 1.2; 
+
+// 3. Loop through each line and draw it, pushing the Y coordinate down each time
+lines.forEach((line, index) => {
+  const lineY = placeholder.y + (index * lineHeight);
+  this.ctx.fillText(line, placeholder.x, lineY);
+});    });
 
     // 3. Draw QR Code - using toDataURL for guaranteed rendering
     if (qrConfig && qrConfig.size > 0 && window.QRCode) {
