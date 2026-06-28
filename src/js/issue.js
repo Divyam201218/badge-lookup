@@ -3,10 +3,60 @@ let currentTemplate = null;
 let renderer;
 let queue = [];
 
-document.addEventListener('DOMContentLoaded', async () => {
-  renderer = new BadgeRenderer(document.getElementById('issueCanvas'));
-  await fetchTemplates();
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if the user already logged in during this browser session
+  if (sessionStorage.getItem('adminAuthed') === 'true') {
+    showApp();
+  }
 });
+
+async function handleLogin() {
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value.trim();
+  const errorMsg = document.getElementById('loginError');
+  const btn = document.querySelector('#loginContainer button');
+
+  if (!user || !pass) return;
+
+  errorMsg.style.display = 'none';
+  btn.innerText = 'Authenticating...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/.netlify/functions/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+
+    if (res.ok) {
+      sessionStorage.setItem('adminAuthed', 'true');
+      showApp();
+    } else {
+      errorMsg.style.display = 'block';
+    }
+  } catch (err) {
+    console.error("Login failed:", err);
+    errorMsg.innerText = "Connection error. Try again.";
+    errorMsg.style.display = 'block';
+  } finally {
+    btn.innerText = 'Login';
+    btn.disabled = false;
+  }
+}
+
+async function showApp() {
+  document.getElementById('loginContainer').classList.add('hidden');
+  document.getElementById('appContainer').classList.remove('hidden');
+  
+  // Initialize the renderer and fetch templates ONLY after successful login
+  if (!renderer) {
+    renderer = new BadgeRenderer(document.getElementById('issueCanvas'));
+    await fetchTemplates();
+  }
+}
+
+// --- Keep all your existing functions (fetchTemplates, loadSelectedTemplate, addParticipant, etc.) below this line! ---
 
 async function fetchTemplates() {
   const res = await fetch("/.netlify/functions/get-templates");
