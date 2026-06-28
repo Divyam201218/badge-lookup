@@ -5,31 +5,52 @@
   <title>Issue Badges</title>
   <link rel="stylesheet" href="css/admin.css">
   <style>
-    .issue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 20px; }
+    .queue-list { margin-top: 16px; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+    .queue-item { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .queue-item:last-child { border-bottom: none; }
+    .remove-btn { color: #ef4444; cursor: pointer; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="issue-grid">
     <div>
-      <h2>Issue New Badge</h2>
+      <h2>1. Batch Settings</h2>
       <select id="templateSelect" onchange="loadSelectedTemplate()"></select>
       
-      <div id="dynamicForm" style="margin-top: 20px;">
-        <input id="recipientName" placeholder="Recipient Name" oninput="updatePreview()">
-        <input id="recipientEmail" placeholder="Recipient Email (e.g., user@example.com)">
+      <div id="batchSettings" class="hidden" style="margin-top: 12px;">
         <input id="badgeName" placeholder="Badge Name (e.g., React Master)">
         <input id="skill" placeholder="Skill Achieved">
         <input id="issueMonth" placeholder="Issue Month (MM)">
         <input id="issueYear" placeholder="Issue Year (YYYY)">
-        <div id="extraPlaceholders"></div>
-      </div>
+        <hr style="margin: 20px 0;">
+        
+        <h2>2. Add Participants</h2>
+        <div class="csv-box">
+          <input id="p-email" placeholder="Participant Email (e.g., user@example.com)">
+          <input id="p-name" placeholder="Participant Name" oninput="updatePreview()">
+          
+          <div id="dynamicPlaceholders" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);"></div>
+          
+          <button onclick="addParticipant()" style="margin-top: 12px; width: 100%;">Add to Queue</button>
+        </div>
 
-      <button onclick="issueBadge()" style="margin-top: 20px; width:100%;">Issue Badge</button>
+        <div class="csv-box">
+          <h3>Or Bulk Upload CSV</h3>
+          <p id="csvFormatGuide"><small>Format: email, name</small></p>
+          <input type="file" accept=".csv" onchange="handleCSV(this)">
+        </div>
+
+        <h2>3. Queue (<span id="q-count">0</span>)</h2>
+        <div id="queueList" class="queue-list"></div>
+
+        <button onclick="issueBulkBadges()" style="margin-top: 20px; width:100%; background: #10b981;">🚀 Issue All Badges in Queue</button>
+      </div>
     </div>
 
     <div>
       <h3>Live Preview</h3>
       <canvas id="issueCanvas"></canvas>
+      <p style="text-align: center; color: var(--muted);"><small>Previewing the data currently typed in the input fields.</small></p>
     </div>
   </div>
 
