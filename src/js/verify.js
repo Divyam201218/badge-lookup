@@ -50,7 +50,7 @@ function downloadPDF() {
   document.getElementById('pdfRecipient').innerText = credentialData.recipientName;
   
   // Using email and date from backend payload
-  document.getElementById('pdfEmail').innerText = credentialData.recipientEmail || "N/A";
+  document.getElementById('pdfEmail').innerText = credentialData.email || "N/A";
   document.getElementById('pdfDate').innerText = `${credentialData.issueMonth}/${credentialData.issueYear}`; 
   document.getElementById('pdfCredID').innerText = credentialData.credentialID;
   
@@ -63,13 +63,17 @@ function downloadPDF() {
   // Temporarily unhide for capture
   document.getElementById('pdf-only-meta').classList.remove('hidden'); 
   
+  // Force scroll to top visually just to be absolutely safe
+  window.scrollTo(0, 0);
+  
   // PDF Options for Portrait and High Resolution
   const opt = {
     margin:       [0.5, 0, 0.5, 0], // Top, Left, Bottom, Right margins
     filename:     `${credentialData.credentialID}.pdf`,
     image:        { type: 'jpeg', quality: 1.0 },
-    html2canvas:  { scale: 3, useCORS: true }, // Higher scale for crisp canvas rendering
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' } // Ensures Portrait Mode
+    // Adding scrollY: 0 forces the canvas to start rendering at the exact top of the element
+    html2canvas:  { scale: 3, useCORS: true, scrollY: 0, windowWidth: document.documentElement.offsetWidth }, 
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' } 
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
