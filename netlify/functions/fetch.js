@@ -4,26 +4,7 @@ const { corsHeaders, initFirebase } = require("./_utils");
 // ==========================================
 // SECURITY CHECK: VERIFY TOKEN
 // ==========================================
-const authHeader = event.headers.authorization || event.headers.Authorization;
 
-if (!authHeader || !authHeader.startsWith("Bearer ")) {
-  return { 
-    statusCode: 401, 
-    headers: corsHeaders(origin), 
-    body: JSON.stringify({ error: "Missing or invalid Authorization header" }) 
-  };
-}
-
-const token = authHeader.split(" ")[1];
-const tokenDoc = await db.collection("AdminTokens").doc(token).get();
-
-if (!tokenDoc.exists || tokenDoc.data().expiresAt < Date.now()) {
-  return { 
-    statusCode: 403, 
-    headers: corsHeaders(origin), 
-    body: JSON.stringify({ error: "Token is invalid or expired" }) 
-  };
-}
 // ==========================================
 // TOKEN VALID: PROCEED WITH FUNCTION LOGIC
 // ==========================================
@@ -69,6 +50,7 @@ exports.handler = async (event) => {
 
   /* ---------- ADMIN FETCH ---------- */
   if (body.password) {
+    
     const adminDoc = await db.collection("Badges").doc("Admins").get();
     const allowed = Object.values(adminDoc.data() || {}).includes(body.password);
     if (!allowed) return { statusCode: 403 };
