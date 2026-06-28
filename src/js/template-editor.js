@@ -1,6 +1,7 @@
 let placeholders = [];
+let qrConfig = { x: 400, y: 400, size: 0 };
 let renderer;
-let activePlaceholderIndex = -1;
+let activeElement = null; // Can be an index (number) or 'qr' (string)
 
 document.addEventListener('DOMContentLoaded', () => {
   renderer = new BadgeRenderer(document.getElementById('badgeCanvas'));
@@ -9,7 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function previewTemplate() {
   const url = document.getElementById('tplImage').value;
-  if (url) renderer.render(url, placeholders);
+  if (url) renderer.render(url, placeholders, {}, qrConfig, "https://example.com/verify-preview");
+}
+
+function updateQR() {
+  qrConfig.size = parseInt(document.getElementById('qrSize').value) || 0;
+  previewTemplate();
 }
 
 function addPlaceholder() {
@@ -31,22 +37,24 @@ function renderPlaceholderUI() {
     const div = document.createElement('div');
     div.className = 'placeholder-row';
     div.innerHTML = `
-      <input value="${ph.key}" onchange="updatePh(${index}, 'key', this.value)" placeholder="Key (e.g., recipientName)">
+      <input value="${ph.key}" onchange="updatePh(${index}, 'key', this.value)" placeholder="Key">
+      <input type="number" value="${ph.size}" onchange="updatePh(${index}, 'size', this.value)" title="Font Size">
       <input type="color" value="${ph.color}" onchange="updatePh(${index}, 'color', this.value)">
-      <button class="secondary" onclick="setActive(${index})">Edit Pos</button>
+      <button class="secondary" onclick="setActiveElement(${index})">Move</button>
     `;
     list.appendChild(div);
   });
 }
 
 function updatePh(index, field, value) {
-  placeholders[index][field] = value;
+  placeholders[index][field] = field === 'size' ? parseInt(value) : value;
   previewTemplate();
 }
 
-function setActive(index) {
-  activePlaceholderIndex = index;
-  alert(`Active: ${placeholders[index].key}. Click and drag on canvas to move.`);
+function setActiveElement(element) {
+  activeElement = element;
+  const name = element === 'qr' ? 'QR Code' : placeholders[element].key;
+  alert(`Active: ${name}. Click and drag on canvas to move.`);
 }
 
 function setupCanvasDrag() {
@@ -56,10 +64,18 @@ function setupCanvasDrag() {
   canvas.addEventListener('mousedown', () => isDragging = true);
   canvas.addEventListener('mouseup', () => isDragging = false);
   canvas.addEventListener('mousemove', (e) => {
-    if (isDragging && activePlaceholderIndex > -1) {
+    if (isDragging && activeElement !== null) {
       const rect = canvas.getBoundingClientRect();
-      placeholders[activePlaceholderIndex].x = e.clientX - rect.left;
-      placeholders[activePlaceholderIndex].y = e.clientY - rect.top;
+      const newX = e.clientX - rect.left;
+      const newY = e.clientY - rect.top;
+
+      if (activeElement === 'qr') {
+        qrConfig.x = newX;
+        qrConfig.y = newY;
+      } else {
+        placeholders[activeElement].x = newX;
+        placeholders[activeElement].y = newY;
+      }
       previewTemplate();
     }
   });
@@ -70,7 +86,7 @@ async function saveTemplate() {
   const image = document.getElementById('tplImage').value;
 
   const payload = {
-    name, image, width: 500, height: 500, version: 1, placeholders
+    name, image, width: 500, height: 500, version: 1, placeholders, qrConfig
   };
 
   await fetch("/.netlify/functions/save-template", {
