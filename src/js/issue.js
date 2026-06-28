@@ -1,6 +1,7 @@
 let templates = [];
 let currentTemplate = null;
 let renderer;
+let queue = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   renderer = new BadgeRenderer(document.getElementById('issueCanvas'));
@@ -21,57 +22,191 @@ async function fetchTemplates() {
 function loadSelectedTemplate() {
   const tId = document.getElementById('templateSelect').value;
   currentTemplate = templates.find(t => t.id === tId);
+  
+  if (!currentTemplate) {
+    document.getElementById('batchSettings').classList.add('hidden');
+    return;
+  }
+
+  document.getElementById('batchSettings').classList.remove('hidden');
+  
+  // Generate inputs for dynamic placeholders
+  const phContainer = document.getElementById('dynamicPlaceholders');
+  phContainer.innerHTML = '<strong>Custom Template Fields:</strong><br>';
+  
+  let csvHeaders = ['email', 'name'];
+
+  currentTemplate.placeholders.forEach(ph => {
+    // We already have standard inputs for email and recipientName. 
+    // If the template specifically uses "recipientName", we map it directly to p-name later.
+    if (ph.key !== 'recipientName') {
+      phContainer.innerHTML += `<input id="ph-${ph.key}" placeholder="${ph.label || ph.key}" oninput="updatePreview()">`;
+      csvHeaders.push(ph.key);
+    }
+  });
+
+  // Update the CSV helper text dynamically
+  document.getElementById('csvFormatGuide').innerHTML = `<small>Required CSV Headers: <b>${csvHeaders.join(', ')}</b></small>`;
+  
   updatePreview();
+}
+
+// Gathers values from the current input fields
+function getCurrentPlaceholderValues(nameInput) {
+  const values = { recipientName: nameInput };
+  if (!currentTemplate) return values;
+
+  currentTemplate.placeholders.forEach(ph => {
+    if (ph.key !== 'recipientName') {
+      const el = document.getElementById(`ph-${ph.key}`);
+      if (el) values[ph.key] = el.value;
+    }
+  });
+  return values;
 }
 
 function updatePreview() {
   if (!currentTemplate) return;
-  
-  const values = {
-    recipientName: document.getElementById('recipientName').value,
-    badgeName: document.getElementById('badgeName').value,
-    skill: document.getElementById('skill').value,
-  };
-  
+  const name = document.getElementById('p-name').value;
+  const values = getCurrentPlaceholderValues(name);
   renderer.render(currentTemplate.image, currentTemplate.placeholders, values);
 }
 
-async function issueBadge() {
-  if (!currentTemplate) return alert("Select a template first.");
+function addParticipant() {
+  const email = document.getElementById('p-email').value.trim();
+  const name = document.getElementById('p-name').value.trim();
+  
+  if (!email || !name) return alert("Email and Name are required.");
 
-  const email = document.getElementById('recipientEmail').value;
-  const name = document.getElementById('recipientName').value;
-  const badgeName = document.getElementById('badgeName').value;
+  const customValues = getCurrentPlaceholderValues(name);
 
-  // Generate dynamic values mapping based on inputs
-  const placeholderValues = {
-    recipientName: name,
-    badgeName: badgeName,
-    skill: document.getElementById('skill').value
-  };
-
-  const payload = {
-    email,
-    recipientName: name,
-    badgeName,
-    skill: document.getElementById('skill').value,
-    issueMonth: document.getElementById('issueMonth').value,
-    issueYear: document.getElementById('issueYear').value,
-    templateID: currentTemplate.id,
-    templateSnapshot: currentTemplate, // Stored to freeze the design
-    placeholderValues
-  };
-
-  const res = await fetch("/.netlify/functions/issue-badge", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+  queue.push({ email, name, values: customValues });
+  
+  // Clear participant inputs
+  document.getElementById('p-email').value = '';
+  document.getElementById('p-name').value = '';
+  currentTemplate.placeholders.forEach(ph => {
+    if (ph.key !== 'recipientName') {
+      const el = document.getElementById(`ph-${ph.key}`);
+      if (el) el.value = '';
+    }
   });
 
-  if(res.ok) {
-    const data = await res.json();
-    alert(`Badge Issued! Credential ID: ${data.credentialID}`);
-  } else {
-    alert("Error issuing badge");
+  renderQueue();
+  updatePreview(); // Reset preview
+}
+
+function removeFromQueue(index) {
+  queue.splice(index, 1);
+  renderQueue();
+}
+
+function renderQueue() {
+  document.getElementById('q-count').innerText = queue.length;
+  const list = document.getElementById('queueList');
+  list.innerHTML = '';
+  
+  queue.forEach((p, index) => {
+    list.innerHTML += `
+      <div class="queue-item">
+        <span><b>${p.name}</b> (${p.email})</span>
+        <span class="remove-btn" onclick="removeFromQueue(${index})">✕</span>
+      </div>
+    `;
+  });
+}
+
+// Basic CSV Parser
+async function handleCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const text = await file.text();
+  const rows = text.split('\n').map(row => row.trim()).filter(row => row);
+  
+  if (rows.length < 2) return alert("CSV is empty or missing data rows.");
+
+  const headers = rows[0].split(',').map(h => h.trim());
+  
+  // Parse rows
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i].split(',').map(c => c.trim());
+    let email = "", name = "";
+    let customValues = {};
+
+    headers.forEach((header, index) => {
+      if (header === 'email') email = cols[index];
+      else if (header === 'name') {
+        name = cols[index];
+        customValues['recipientName'] = cols[index];
+      }
+      else {
+        customValues[header] = cols[index];
+      }
+    });
+
+    if (email && name) {
+      queue.push({ email, name, values: customValues });
+    }
   }
+
+  alert(`${rows.length - 1} participants extracted from CSV.`);
+  renderQueue();
+  input.value = ''; // Reset file input
+}
+
+// Process the Queue
+async function issueBulkBadges() {
+  if (queue.length === 0) return alert("Queue is empty. Add participants first.");
+  
+  const badgeName = document.getElementById('badgeName').value.trim();
+  const skill = document.getElementById('skill').value.trim();
+  const issueMonth = document.getElementById('issueMonth').value.trim();
+  const issueYear = document.getElementById('issueYear').value.trim();
+
+  if (!badgeName || !skill || !issueMonth || !issueYear) {
+    return alert("Please fill out all Batch Settings (Badge Name, Skill, Month, Year).");
+  }
+
+  const btn = document.querySelector('button[onclick="issueBulkBadges()"]');
+  btn.innerText = "Issuing... Please wait";
+  btn.disabled = true;
+
+  let successCount = 0;
+
+  // We loop through sequentially to avoid overwhelming the frontend/backend limits
+  for (const p of queue) {
+    const payload = {
+      email: p.email,
+      recipientName: p.name,
+      badgeName,
+      skill,
+      issueMonth,
+      issueYear,
+      templateID: currentTemplate.id,
+      templateSnapshot: currentTemplate,
+      placeholderValues: p.values
+    };
+
+    try {
+      const res = await fetch("/.netlify/functions/issue-badge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      if (res.ok) successCount++;
+    } catch (err) {
+      console.error(`Failed to issue badge for ${p.email}:`, err);
+    }
+  }
+
+  alert(`Successfully issued ${successCount} out of ${queue.length} badges!`);
+  
+  // Reset Queue
+  queue = [];
+  renderQueue();
+  
+  btn.innerText = "🚀 Issue All Badges in Queue";
+  btn.disabled = false;
 }
