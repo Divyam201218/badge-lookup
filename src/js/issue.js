@@ -214,26 +214,30 @@ async function handleCSV(input) {
   const headers = rows[0].split(',').map(h => h.trim());
   
   // Parse rows
-  for (let i = 1; i < rows.length; i++) {
-    const cols = rows[i].split(',').map(c => c.trim());
-    let email = "", name = "";
-    let customValues = {};
+  // Parse rows
+    for (let i = 1; i < rows.length; i++) {
+      const cols = rows[i].split(',').map(c => c.trim());
+      let email = "", name = "";
+      let customValues = {};
 
-    headers.forEach((header, index) => {
-      if (header === 'email') email = cols[index];
-      else if (header === 'name') {
-        name = cols[index];
-        customValues['recipientName'] = cols[index];
-      }
-      else {
-        customValues[header] = cols[index];
-      }
-    });
+      headers.forEach((header, index) => {
+        // Grab the cell and convert any literal "\n" strings into actual line breaks
+        let cellValue = cols[index] ? cols[index].replace(/\\n/g, '\n') : "";
 
-    if (email && name) {
-      queue.push({ email, name, values: customValues });
+        if (header === 'email') email = cellValue;
+        else if (header === 'name') {
+          name = cellValue;
+          customValues['recipientName'] = cellValue;
+        }
+        else {
+          customValues[header] = cellValue;
+        }
+      });
+
+      if (email && name) {
+        queue.push({ email, name, values: customValues });
+      }
     }
-  }
 
   alert(`${rows.length - 1} participants extracted from CSV.`);
   renderQueue();
