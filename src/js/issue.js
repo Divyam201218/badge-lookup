@@ -125,7 +125,7 @@ function loadSelectedTemplate() {
     // We already have standard inputs for email and recipientName. 
     // If the template specifically uses "recipientName", we map it directly to p-name later.
     if (ph.key !== 'recipientName') {
-      phContainer.innerHTML += `<textarea id="ph-${ph.key}" placeholder="${ph.key}" oninput="updatePreview()">`;
+      phContainer.innerHTML += `<textarea id="ph-${ph.key}" placeholder="${ph.key}" oninput="updatePreview()"></textarea>`;
       csvHeaders.push(ph.key);
     }
   });
