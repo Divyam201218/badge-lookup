@@ -1,3 +1,60 @@
+// --- Add this Auth Logic to the top of your file ---
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if the user already logged in during this browser session
+  if (sessionStorage.getItem('adminAuthed') === 'true') {
+    showApp();
+  }
+
+  // Your existing setup
+  renderer = new BadgeRenderer(document.getElementById('badgeCanvas'));
+  setupCanvasDrag();
+});
+
+async function handleLogin() {
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value.trim();
+  const errorMsg = document.getElementById('loginError');
+  const btn = document.querySelector('#loginContainer button');
+
+  if (!user || !pass) return;
+
+  errorMsg.style.display = 'none';
+  btn.innerText = 'Authenticating...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/.netlify/functions/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+
+    if (res.ok) {
+      // Save a temporary session flag so they don't have to log in on every refresh
+      sessionStorage.setItem('adminAuthed', 'true');
+      showApp();
+    } else {
+      // 403 Forbidden - Invalid credentials
+      errorMsg.style.display = 'block';
+    }
+  } catch (err) {
+    console.error("Login failed:", err);
+    errorMsg.innerText = "Connection error. Try again.";
+    errorMsg.style.display = 'block';
+  } finally {
+    btn.innerText = 'Login';
+    btn.disabled = false;
+  }
+}
+
+function showApp() {
+  document.getElementById('loginContainer').classList.add('hidden');
+  document.getElementById('appContainer').classList.remove('hidden');
+}
+
+// --- Keep your existing placeholders, QR, and drag logic below this line ---
+
 let placeholders = [];
 let qrConfig = { x: 400, y: 400, size: 0 };
 let renderer;
