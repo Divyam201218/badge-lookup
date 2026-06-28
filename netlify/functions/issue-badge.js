@@ -1,5 +1,32 @@
 const { initFirebase } = require("./_utils");
+  const db = initFirebase();
 
+// ==========================================
+// SECURITY CHECK: VERIFY TOKEN
+// ==========================================
+const authHeader = event.headers.authorization || event.headers.Authorization;
+
+if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  return { 
+    statusCode: 401, 
+    headers: corsHeaders(origin), 
+    body: JSON.stringify({ error: "Missing or invalid Authorization header" }) 
+  };
+}
+
+const token = authHeader.split(" ")[1];
+const tokenDoc = await db.collection("AdminTokens").doc(token).get();
+
+if (!tokenDoc.exists || tokenDoc.data().expiresAt < Date.now()) {
+  return { 
+    statusCode: 403, 
+    headers: corsHeaders(origin), 
+    body: JSON.stringify({ error: "Token is invalid or expired" }) 
+  };
+}
+// ==========================================
+// TOKEN VALID: PROCEED WITH FUNCTION LOGIC
+// ==========================================
 function generateCredentialID() {
   const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `BG-2026-${randomStr}`;
@@ -8,7 +35,6 @@ function generateCredentialID() {
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return { statusCode: 405 };
   
-  const db = initFirebase();
   const data = JSON.parse(event.body);
   const credID = generateCredentialID();
   const today = new Date().toISOString().split('T')[0];
