@@ -5,6 +5,7 @@
   <title>Verify Credential</title>
   <link rel="stylesheet" href="css/admin.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
   <div class="container" style="max-width: 800px; text-align: center; padding-top: 50px;">
@@ -12,15 +13,16 @@
     <h3 id="vName" style="color: var(--accent);"></h3>
     <p id="vDetails"></p>
     
-    <div id="pdf-wrapper" style="margin: 20px auto; padding: 20px; background: white; border-radius: 12px; display: inline-block;">
-      <canvas id="verifyCanvas"></canvas>
-      <div id="pdf-only-meta" class="hidden">
-        <h2 id="pdfBadgeName"></h2>
-        <p>Issued to: <strong id="pdfRecipient"></strong></p>
-        <p>Credential ID: <span id="pdfCredID"></span></p>
-        <p>Verification URL: <span id="pdfUrl"></span></p>
-      </div>
-    </div>
+    <div id="pdf-wrapper" style="margin: 20px auto; padding: 30px; background: white; border-radius: 12px; display: inline-block; max-width: 600px;">
+  <canvas id="verifyCanvas"></canvas>
+  
+  <div id="pdf-only-meta" class="hidden" style="text-align: left; margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border); font-family: sans-serif;">
+    <h2 id="pdfBadgeName" style="margin-bottom: 8px;"></h2>
+    <p style="margin: 4px 0; color: #333;">Issued to: <strong id="pdfRecipient"></strong></p>
+    <p style="margin: 4px 0; color: #555;">Credential ID: <span id="pdfCredID" style="font-family: monospace;"></span></p>
+    <p style="margin: 4px 0; color: #555; font-size: 13px;">Verify authenticity at:<br> <a id="pdfUrl" style="color: var(--accent); text-decoration: none;"></a></p>
+  </div>
+</div>
 
     <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
       <button onclick="downloadPNG()">Download PNG</button>
