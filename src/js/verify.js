@@ -50,7 +50,7 @@ function downloadPDF() {
   document.getElementById('pdfRecipient').innerText = credentialData.recipientName;
   
   // Using email and date from backend payload
-  document.getElementById('pdfEmail').innerText = credentialData.email || "N/A";
+  document.getElementById('pdfEmail').innerText = credentialData.recipientEmail || "N/A";
   document.getElementById('pdfDate').innerText = `${credentialData.issueMonth}/${credentialData.issueYear}`; 
   document.getElementById('pdfCredID').innerText = credentialData.credentialID;
   
