@@ -23,7 +23,7 @@ class BadgeRenderer {
       this.ctx.textBaseline = 'middle';
 
 // 1. Split the incoming text by the newline character
-const lines = String(text).split('\n');
+const lines = String(text).replace(/\\n/g, '\n').split('\n');
 
 // 2. Define a line height (usually 1.2x to 1.5x the font size)
 const lineHeight = ph.size * 1.2; 
