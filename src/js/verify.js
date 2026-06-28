@@ -1,38 +1,63 @@
+// 1. These MUST be at the very top of the file (Global Scope)
+let credentialData = null;
+let renderer;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  renderer = new BadgeRenderer(document.getElementById('verifyCanvas'));
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const credID = urlParams.get('id');
+  
+  if(credID) loadCredential(credID);
+});
+
 async function loadCredential(credID) {
-  const res = await fetch(`/.netlify/functions/verify-badge?id=${credID}`);
-  if (!res.ok) return alert("Invalid Credential ID");
+  try {
+    const res = await fetch(`/.netlify/functions/verify-badge?id=${credID}`);
+    if (!res.ok) return alert("Invalid Credential ID");
+    
+    credentialData = await res.json();
+    
+    document.getElementById('vName').innerText = credentialData.recipientName;
+    document.getElementById('vDetails').innerText = `${credentialData.badgeName} • Issued: ${credentialData.issueDate} • ID: ${credentialData.credentialID}`;
+    
+    // Pass the stored QR config and the actual current URL to the renderer
+    renderer.render(
+      credentialData.templateSnapshot.image, 
+      credentialData.templateSnapshot.placeholders, 
+      credentialData.placeholderValues,
+      credentialData.templateSnapshot.qrConfig, 
+      window.location.href 
+    );
+  } catch (err) {
+    console.error("Error loading credential:", err);
+    alert("Failed to load badge data.");
+  }
+}
+
+function downloadPNG() {
+  // Safety check: Prevent downloading before data loads
+  if (!credentialData) return alert("Please wait for the badge to finish loading.");
   
-  credentialData = await res.json();
-  
-  document.getElementById('vName').innerText = credentialData.recipientName;
-  document.getElementById('vDetails').innerText = `${credentialData.badgeName} • Issued: ${credentialData.issueDate} • ID: ${credentialData.credentialID}`;
-  
-  // Pass the stored QR config and the actual current URL to the renderer
-  renderer.render(
-    credentialData.templateSnapshot.image, 
-    credentialData.templateSnapshot.placeholders, 
-    credentialData.placeholderValues,
-    credentialData.templateSnapshot.qrConfig, // New!
-    window.location.href // New!
-  );
+  renderer.downloadPNG(`${credentialData.credentialID}.png`);
 }
 
 function downloadPDF() {
+  // Safety check: Prevent downloading before data loads
+  if (!credentialData) return alert("Please wait for the badge to finish loading.");
+
   document.getElementById('pdfBadgeName').innerText = credentialData.badgeName;
   document.getElementById('pdfRecipient').innerText = credentialData.recipientName;
   document.getElementById('pdfCredID').innerText = credentialData.credentialID;
   
-  // Set href and text for the URL
   const urlEl = document.getElementById('pdfUrl');
   urlEl.innerText = window.location.href;
   urlEl.href = window.location.href;
   
   const element = document.getElementById('pdf-wrapper');
   
-  // Temporarily reveal meta for PDF capture
   document.getElementById('pdf-only-meta').classList.remove('hidden'); 
   
-  // Added options to ensure the PDF looks clean and scales well
   const opt = {
     margin:       0.5,
     filename:     `${credentialData.credentialID}.pdf`,
@@ -42,6 +67,25 @@ function downloadPDF() {
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
-    document.getElementById('pdf-only-meta').classList.add('hidden'); // Hide meta again
+    document.getElementById('pdf-only-meta').classList.add('hidden'); 
   });
+}
+
+function addToLinkedIn() {
+  // Safety check: Prevent clicking before data loads
+  if (!credentialData) return alert("Please wait for the badge to finish loading.");
+
+  const baseUrl = "https://www.linkedin.com/profile/add";
+  
+  const params = new URLSearchParams({
+    startTask: "CERTIFICATION_NAME",
+    name: credentialData.badgeName,
+    organizationId: credentialData.issuingOrganizationID, 
+    issueMonth: credentialData.issueMonth,
+    issueYear: credentialData.issueYear,
+    certId: credentialData.credentialID,
+    certUrl: window.location.href 
+  });
+
+  window.open(`${baseUrl}?${params.toString()}`, '_blank');
 }
